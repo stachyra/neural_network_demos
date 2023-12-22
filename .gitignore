@@ -1,0 +1,5 @@
+# MNIST downloaded data
+data/
+
+# System
+.DS_Store
