@@ -42,7 +42,7 @@ Here are 5 sample images from each class:
 
 ![Sample images from each garment class](figures/sample_images.png)
 
-The data set is predivided into a standard training and test split containing 60,000 and 10,000 images, respectively.  Membership is evenly distributed across all classes:
+The data set is pre-divided into a standard training and test split containing 60,000 and 10,000 images, respectively.  Membership is evenly distributed across all classes:
 
 ![Distribution of image class membership](figures/class_distribution.png)
 
@@ -56,14 +56,14 @@ Before building a neural network model using pytorch, a baseline performance cal
 
 These models both have hyperparameters which offer the user an opportunity to fine tune how the models behave.  As an exercise, we attempt to optimize along one hyperparameter for each model, accepting default values for all other model hyperparameters:
 
-- K Nearest Neighbors: we vary the `n_neighbors`, the number of neighbor images that are used to vote on a classification decision 
-- Random Forest: we vary the `max_depth`, which controls the maximum allowed depth (i.e., the number of decision nodes) of the decision trees in the forest
+- **K Nearest Neighbors:** we vary the `n_neighbors`, the number of neighbor images that are used to vote on a classification decision 
+- **Random Forest:** we vary the `max_depth`, which controls the maximum allowed depth (i.e., the number of decision nodes) of the decision trees in the forest
 
 The 60,000 images in the original pytorch-defined training split are further sub-divided into 10 cross-validation folds each consisting of 54,000 training images and 6000 validation images.  Each model is trained on the 54,000 images in each fold, and the classification accuracy is calculated on both the 54,000 training images (blue trace) and 6000 validation images (orange trace) in that fold.  Error bars below plotted depict the estimated standard deviation of the accuracy observed across the 10 folds.
 
-In a non-demonstration exercise, one would typically choose the single hyperparameter setting corresponding to the best (i.e., highest accuracy) validation result, and then re-train the classifier using all 60,000 training images, and estimate the final predicted accuracy using the 10,000 remaining holdout images (green trace), but only at that optimized hyperparameter value.  One would *not* use the final holdout data to select an optimal hyperparameter setting, as that would be "cheating" essentially; final holdout data should never be used to tune any aspect of model selection.
+In a non-demonstration exercise, one would typically choose the single hyperparameter setting corresponding to the best (i.e., highest accuracy) validation result, and then re-train the classifier using all 60,000 training images, and estimate the final predicted accuracy using the 10,000 remaining holdout images (green trace), but only at that optimized hyperparameter value.  One would *not* use the final holdout data to select an optimal hyperparameter setting, as that would effectively be "cheating"; final holdout data should never be used to tune any aspect of model selection.
 
-Here, for demonstration purposes, instead of calculating accuracy against the final holdout test set solely at the optimized hyperparameter value, we actually retrain across all hyperparameter values, just to explore how closely the validation accuracy estimate (orange trace) actually recapitulates the accuracy estimated with the final holdout test data, across the entire range of hyperparameter space.
+Here, for demonstration purposes, instead of calculating accuracy against the final holdout test set solely at the optimized hyperparameter value, we actually retrain across all hyperparameter values, just to explore how closely the validation accuracy estimate (orange trace) actually recapitulates the accuracy estimated with the final holdout test data (green trace), across the entire range of hyperparameter space.
 
 ![Accuracy vs. hyperparameter values for scikit-learn models](figures/accuracy_vs_hyperparameter.png)
 
@@ -73,7 +73,7 @@ First, the Random Forest Classifier notably exhibits overfitting, beginning at r
 
 It's also noteworthy that K Nearest Neighbors actually achieves 100% accuracy on the training set with `n_neighbors = 1` .  There's an unexpected reason for this: it's because the specific implementation of this algorithm in scikit-learn apparently has no mechanism to exclude the sample itself from comparison (or equivalently, to exclude functionally identical samples having `distance = 0` after evaluating a distance metric).  So, for `n_neighbors = 1`, on the training set, this means that the algorithm just uses the sample itself as the closest reference example, in 100% of cases.  Even for cases with `n_neighbors > 1`, a sample drawn from the training set will always be compared against itself as one of its neighbors.  Thus, K Nearest Neighbors has an inherent limitation that makes it difficult to use the training data performance to identify "overfitting" in the same way we're able to do with the Random Forest Classifier, because training samples are always guaranteed at least one additional "correct vote" that is not generally available to samples in the test data set.
 
-A final point of interest is that the final accuracy estimates derived from cross-validation seem to be consistently slightly higher than the accuracy estimates from the final holdout test set, across most hyperparameter values.  I surmise this is related to the fact that even though the 10 validation folds used in the cross-validation step are completely independent of one another, the 10 training folds are not: each training fold exhibits 8/9 common sample overlap with its two most similar neighbors, and lesser degrees of sample overlap with the other folds as well.  Thus, there are hidden correlations in the training outcomes across each of the folds, even if the validation sets are each independent statistical draws and do not overlap.
+A final point of interest is that the final accuracy estimates derived from cross-validation seem to be consistently slightly higher than the accuracy estimates from the final holdout test set, across most hyperparameter values.  I surmise this is related to the fact that even though the 10 validation folds used in the cross-validation step are completely independent of one another, the 10 training folds are not: each training fold exhibits 8/9 common sample overlap with its two most similar adjacent folds, and lesser degrees of sample overlap with the other folds as well.  Thus, there are hidden correlations in the training outcomes across each of the folds, even if the validation sets are each independent statistical draws and do not overlap.
 
 ### K Nearest Neighbors Confusion Matrix
 
@@ -113,4 +113,4 @@ As noted earlier, the most confusion generally occurs between members within the
 
 # Conclusions
 
-The demo script, [pytorch_FashionMNIST.py](pytorch_FashionMNIST.py) demonstrates a simple basic pytorch image classification workflow, including baseline results from traditional non-neural network machine learning approaches as well.  For the simple pytorch model that we've built here, with just a single hidden layer, final accuracy on the holdout test data set saturates at around 88%, which delivers approximately equivalent performance as a Random Forest classifer in scikit-learn.  Other, more complicated neural network model architectures (e.g., such as deep learning networks containing multiple hidden layers) could offer further performance gains, however for purposes of developing a simple demo, those more complicated architectures weren't tested here.
+The demo script, [pytorch_FashionMNIST.py](pytorch_FashionMNIST.py) implements a basic pytorch image classification workflow, and also includes a baseline analysis to compare against traditional non-neural network machine learning approaches as well.  For the simple pytorch model that we've built in this example, with just a single hidden layer, final accuracy on the holdout test data set saturates at around 88%, with performance approximately equivalent to a Random Forest classifer in scikit-learn.  Other, more complicated neural network model architectures (e.g., such as deep learning networks containing multiple hidden layers) could offer further performance gains, however for purposes of developing a simple demo, those more complicated architectures weren't explored here.
